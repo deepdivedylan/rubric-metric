@@ -1,13 +1,20 @@
 package edu.cnm.bootcampcoders.rubricmetric;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Student {
 	protected Double blamePercentage;
 	protected Integer ticketsCompleted;
 	protected Integer ticketsAssigned;
+	protected String name;
 
 	/**
 	 * default constructor that creates an empty Student
@@ -19,6 +26,7 @@ public class Student {
 			setBlamePercentage(0.0);
 			setTicketsAssigned(1);
 			setTicketsCompleted(0);
+			setName("");
 		} catch(IllegalArgumentException illegalArgument) {
 			throw(new IllegalArgumentException(illegalArgument.getMessage(), illegalArgument));
 		}
@@ -32,14 +40,52 @@ public class Student {
 	 * @param newTicketsAssigned number of tickets assigned to the student
 	 * @throws IllegalArgumentException if any of the parameters are out of bounds
 	 */
-	public Student(Double newBlamePercentage, Integer newTicketsCompleted, Integer newTicketsAssigned) throws IllegalArgumentException {
+	public Student(Double newBlamePercentage, Integer newTicketsCompleted, Integer newTicketsAssigned, String newName) throws IllegalArgumentException {
 		try {
 			setBlamePercentage(newBlamePercentage);
 			setTicketsAssigned(newTicketsAssigned);
 			setTicketsCompleted(newTicketsCompleted);
+			setName(newName);
 		} catch(IllegalArgumentException illegalArgument) {
 			throw(new IllegalArgumentException(illegalArgument.getMessage(), illegalArgument));
 		}
+	}
+
+	/**
+	 * takes CSV data and generates a Container of Student records
+	 *
+	 * @param csvData string containing CSV data: {blameLines,studentName}
+	 * @return Container of the parsed Student data
+	 * @throws IOException on CSV read errors
+	 * @throws IllegalArgumentException if CSV data contains the incorrect number of fields
+	 **/
+	public static List<Student> parseStudentCSVData(String csvData) throws IOException, IllegalArgumentException {
+		CSVParser csvParser = CSVParser.parse(csvData, CSVFormat.DEFAULT);
+		LinkedList<Student> students = new LinkedList<Student>();
+		LinkedList<Integer> blameLines = new LinkedList<Integer>();
+
+		// parse each CSV record
+		for(CSVRecord csvRecord : csvParser) {
+			if(csvRecord.size() != 2) {
+				throw(new IllegalArgumentException("incorrect number of fields detected in CSV data"));
+			}
+
+			// populate the student and blame lists
+			Student student = new Student();
+			student.setName(csvRecord.get(0));
+			students.add(student);
+			blameLines.add(Integer.parseInt(csvRecord.get(1)));
+		}
+
+		// calculate each percentage
+		Iterator<Integer> blameIterator = blameLines.iterator();
+		Integer sum = blameLines.stream().mapToInt(Integer::intValue).sum();
+		for(Student student : students) {
+			Double percentage = blameIterator.next().doubleValue() / sum.doubleValue();
+			student.setBlamePercentage(percentage);
+		}
+
+		return(students);
 	}
 
 	/**
@@ -109,6 +155,24 @@ public class Student {
 			throw(new IllegalArgumentException("tickets assigned must be positive"));
 		}
 		ticketsAssigned = newTicketsAssigned;
+	}
+
+	/**
+	 * accessor method for name
+	 *
+	 * @return value of name
+	 **/
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * mutator method for name
+	 *
+	 * @param newName new value of name
+	 **/
+	public void setName(String newName) {
+		name = newName;
 	}
 
 	/**

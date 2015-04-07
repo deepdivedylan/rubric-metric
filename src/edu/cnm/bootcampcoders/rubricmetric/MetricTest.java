@@ -57,7 +57,7 @@ public class MetricTest {
 			// build up the groups
 			LinkedList<Student> group = new LinkedList<Student>();
 			for(Double blamePercent : blamePercentages) {
-				Student nextStudent = new Student(blamePercent, 1, 1);
+				Student nextStudent = new Student(blamePercent, 1, 1, "");
 				group.add(nextStudent);
 			}
 
